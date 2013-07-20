@@ -214,7 +214,7 @@ Default value: **1.51**
 
 Currently allowed values are:
 
-- Any positive real number
+- Any positive real number with a 0.1 minumum
 
 
 ## tradeamtsell ##
@@ -224,7 +224,7 @@ Default value: **1.50**
 
 Currently allowed values are:
 
-- Any positive real number
+- Any positive real number with a 0.1 minimum
 
 
 ## tradebase ##
