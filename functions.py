@@ -46,7 +46,6 @@ def getbtcbalance(handler):
                 conn = btceapi.BTCEConnection()
                 t = btceapi.TradeAPI(key, handler=handler)
 
-                #print "Getting balance information........"
                 try:                                            # curencies and balances
                         r = t.getInfo(connection = conn)
                         for key in handler.getKeys():
@@ -64,18 +63,10 @@ def getbtcbalance(handler):
                 balance[-1] = 0
                 curname[-1] = "tot"
 
-                #r = 0
-                #for p in range(0,len(curname)):
-                #        print curname[r], balance[r]
-                #        r += 1
-
-                #print "Checking for any open orders......."
                 try:                                            # add currency stuck in orders
                         r = t.getInfo(connection = conn)
-                        orders = t.orderList(connection = conn)
-                        for o in orders:
-                                #print "  processing order: " + str(o.order_id)
-                                #, o.type, o.pair, o.amount
+                        glob.orders = t.orderList(connection = conn)
+                        for o in glob.orders:
                                 pointer = 0                                
                                 if o.pair == "btc_usd":
                                         if o.type == "sell":
@@ -91,7 +82,6 @@ def getbtcbalance(handler):
                                 elif o.pair == "ltc_btc":
                                         if o.type == "sell":
                                                 for p in range(0,len(balance)):        
-                                                        #print pointer, curname[pointer]
                                                         if curname[pointer] == "ltc":
                                                                 balance[pointer] = balance[pointer] + o.amount
                                                         pointer += 1
@@ -235,10 +225,8 @@ def getbtcbalance(handler):
                 except:
                         whatever = "voutje bedankt"
 
-                #print "Converting all curencies to BTC...."        
                 r = 0
                 for p in range(0,len(curname)-1):
-                        #print "  processing currency: " + curname[r]
                         if curname[r] == "btc":
                                 balance[-1] = balance[-1] + balance[r]
                         elif curname[r] == "ltc":
@@ -273,9 +261,6 @@ def getbtcbalance(handler):
                                 balance[-1] = balance[-1] + ( history[0].price * balance[r] )
                         r += 1
 
-                #print
-                #print "Total wallet value is approximately " + str('{:10.5f}'.format(balance[-1])), "BTC"
-                #print
                 return balance[-1]
 # def_getbtcbalance()
 

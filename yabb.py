@@ -20,6 +20,10 @@ import glob                                             # Global (yes it's ugly.
 
 from btceapi import btceapi                             # alanmcintyre / btce-api
 
+global handler
+
+handler 	= "Empty String"                                # connection handle
+
 class c:						# ansi colors
 	blu = '\033[94m'
 	grn = '\033[32m'
@@ -32,35 +36,9 @@ class c:						# ansi colors
 	lgr = '\33[37m'
 	udl = '\033[0m\033[4m'
 
-global connectw, connecta
-global handler
-global balancec, balancea
-global botright
-global orders, ordbuy, ordsell
-global tickbuy, ticksell, trends
-global lastrate
-global totcano
-
-		
-connectw 	= False							# conenct web
-connecta	= False							# connect api
-handler 	= "Empty String "					# connection handle
-
-balancec	= []							# currencies
-balancea	= []							# balance
-balanceo        = []                                                    # prev balance
-botright	= []							# bot rights
-orders		= ""							# open orders
-ordbuy		= 0							# open buy orders
-ordsell		= 0							# open sell orders
-tickbuy		= ""							# ticker buy orders
-ticksell	= ""							# ticker sell orders
-trends		= ""							# trend indicators
-lastrate	= ""							# last rate traded at
 totcano         = 0                                                     # you do the math......
 
 def updateticker():                                                     # Calc SMA over last 5, 10, 20, 50 en 150 trades
-	global tickbuy, ticksell, trends, lastrate
 	bala 	= 	[]
 	balb 	= 	[]
 	balc 	= 	[]
@@ -70,7 +48,7 @@ def updateticker():                                                     # Calc S
 	history	=	""
 	try:
 		history = btceapi.getTradeHistory(config.tradepair)
-               	connecta = True
+               	glob.connecta = True
 		p = 0
 		for t in history:
 		        bala.append(1)
@@ -86,64 +64,63 @@ def updateticker():                                                     # Calc S
 		        bale[p]=t.pair
 		        bale[p]=t.date
 		        p+=1
-		tickbuy = "Buy " + c.grn
-		ticksell = "Sell" + c.red
+		glob.tickbuy = "Buy " + c.grn
+		glob.ticksell = "Sell" + c.red
 		for p in range(0,7):
 		        if balb[p] == "bid":
-		                tickbuy = tickbuy + str('{:10.5f}'.format(bald[p]))
-		                ticksell = ticksell + "          "
+		                glob.tickbuy = glob.tickbuy + str('{:10.5f}'.format(bald[p]))
+		                glob.ticksell = glob.ticksell + "          "
 		        else:
-		                tickbuy = tickbuy + "          "
-		                ticksell = ticksell + str('{:10.5f}'.format(bald[p]))
-		tickbuy = tickbuy + c.rst
-		ticksell = ticksell + c.rst
+		                glob.tickbuy = glob.tickbuy + "          "
+		                glob.ticksell = glob.ticksell + str('{:10.5f}'.format(bald[p]))
+		glob.tickbuy = glob.tickbuy + c.rst
+		glob.ticksell = glob.ticksell + c.rst
 
 		trends = ""
 		if bald[0] > sum(bald[0:5])/5:
-	        	trends = "over x trades, 5: up     "
+	        	glob.trends = "over x trades, 5: up     "
 		elif bald[0] < sum(bald[0:5])/5:
-		        trends = "over x trades, 5: down   "
+		        glob.trends = "over x trades, 5: down   "
 		else:
-		        trends = "over x trades, 5: stand  "
+		        glob.trends = "over x trades, 5: stand  "
 	        if bald[0] > sum(bald[0:10])/10:
-	                trends = trends + "10: up     "
+	                glob.trends = glob.trends + "10: up     "
 	        elif bald[0] < sum(bald[0:10])/10:
-	                trends = trends + "10: down   "
+	                glob.trends = glob.trends + "10: down   "
 	        else:
-	                trends = trends + "10: stand  "
+	                glob.trends = glob.trends + "10: stand  "
 	        if bald[0] > sum(bald[0:20])/20:
-	                trends = trends + "20: up     "
+	                glob.trends = glob.trends + "20: up     "
 	        elif bald[0] < sum(bald[0:20])/20:
-	                trends = trends + "20: down   "
+	                glob.trends = glob.trends + "20: down   "
 	        else:
-	                trends = trends + "20: stand  "
+	                glob.trends = glob.trends + "20: stand  "
 	        if bald[0] > sum(bald[0:50])/50:
-	                trends = trends + "50: up     "
+	                glob.trends = glob.trends + "50: up     "
 	        elif bald[0] < sum(bald[0:50])/50:
-	                trends = trends + "50: down   "
+	                glob.trends = glob.trends + "50: down   "
 	        else:
-	                trends = trends + "50: stand  "
+	                glob.trends = glob.trends + "50: stand  "
 	        if bald[0] > sum(bald[0:150])/150:
-	                trends = trends + "150: up"
+	                glob.trends = glob.trends + "150: up"
 	        elif bald[0] < sum(bald[0:150])/150:
-	                trends = trends + "150: down"
+	                glob.trends = glob.trends + "150: down"
 	        else:
-	                trends = trends + "150: stand"
-		lastrate = bald[0]
+	                glob.trends = glob.trends + "150: stand"
+		glob.lastrate = bald[0]
         except Exception as e:
                 if config.logconnect:
 			functions.writelog(str(e))
                         functions.writelog("Connect: API Connect failed (get trade history).")
-                connecta = False
+                glob.connecta = False
 # def_updateticker()
 
 def checkordage(handler):
-	global orders, totcano
 	for key in handler.getKeys():
 		try:
 	               	conn = btceapi.BTCEConnection()
 	               	t = btceapi.TradeAPI(key, handler=handler)
-	               	for o in orders:
+	               	for o in glob.orders:
                                 if (config.tradecnlpro == True and o.pair == config.tradepair) or config.tradecnlpro == False:
                 		        if o.type == 'sell':
 				                if config.trademaxslife > 0:
@@ -157,13 +134,13 @@ def checkordage(handler):
 	                       	                                                functions.writelog("Orders: Cancelling sell order " + str(o.order_id) +" due to age.")
 	                       	                                                try:
 	                       	                                                        t.cancelOrder(o.order_id)            # kill the order!!!
-	                                                                                totcano += 1
-                         	                                                        connecta = True
+	                                                                                glob.totcano += 1
+                         	                                                        glob.connecta = True
 	                       	                                                except:
 	                       	                                                      	if config.logconnect:
                             	                                                      		functions.writelog(str(e))
                                	                                                               	functions.writelog("Connect: Unable to cancel sell order " + str(o.order_id) +" due to age.")
-                               	                                                               	connecta = False
+                               	                                                               	glob.connecta = False
 			                else:
 				                if config.trademaxblife > 0:
                                                         tdelta = datetime.datetime.now() - o.timestamp_created
@@ -176,28 +153,27 @@ def checkordage(handler):
                                                                                 functions.writelog("Orders: Cancelling buy order " + str(o.order_id) +" due to age.")
                                                                                 try:
                                                                                         t.cancelOrder(o.order_id)            # kill the order!!!
-	                                                                                totcano += 1
-               	                       	                                                connecta = True
+	                                                                                glob.totcano += 1
+               	                       	                                                glob.connecta = True
                                                                                 except:
                                                                                         if config.logconnect:
                                                                                                 functions.writelog(str(e))
                                                                                                 functions.writelog("Connect: Unable to cancel buy order " + str(o.order_id) +" due to age.")
-                                                                                                connecta = False
+                                                                                                glob.connecta = False
 	        except Exception as e:
                         functions.writelog("Exception in checking age...")
 	                if config.logconnect:
 	                	functions.writelog(str(e))
 	                	functions.writelog("Connect: API Connect failed (check order age).")
-	                connecta = False
+	                glob.connecta = False
 # def_checkordage()
 
 def cancelall(handler):
-	global orders, totcano
 	for key in handler.getKeys():
 		try:
 	               	conn = btceapi.BTCEConnection()
 	               	t = btceapi.TradeAPI(key, handler=handler)
-	               	for o in orders:
+	               	for o in glob.orders:
                                 if config.tradecnlpro:
                                         if o.pair == config.tradepair:
 				                if o.type == 'sell':
@@ -205,129 +181,124 @@ def cancelall(handler):
                                                                 functions.writelog("Orders: Cancelling sell order " + str(o.order_id) +" due to manual cancel.")
 	                        	                try:
 	                        	                        t.cancelOrder(o.order_id)            # kill the order!!!
-                                                                totcano += 1
-	                        	                        connecta = True
+                                                                glob.totcano += 1
+	                        	                        glob.connecta = True
 	                        	                except:
 	                        	                        if config.logconnect:
 	                               	                                functions.writelog(str(e))
 	                               	                                functions.writelog("Connect: Unable to cancel sell order " + str(o.order_id) +" due to manual cancel.")
-	                               	                        connecta = False
+	                               	                        glob.connecta = False
 				                else:
                                                         if config.logorders:
                                                                 functions.writelog("Orders: Cancelling buy order " + str(o.order_id) +" due to manual cancel.")
 				                        try:
 	                                                        t.cancelOrder(o.order_id)            # kill the order!!!
-                                                                totcano += 1
-	                                                        connecta = True
+                                                                glob.totcano += 1
+	                                                        glob.connecta = True
 	                                                except:
 	                                                        if config.logconnect:
 	                                                                functions.writelog(str(e))
 	                                                                functions.writelog("Connect: Unable to cancel buy order " + str(o.order_id) +" due to manual cancel.")
-	                                                        connecta = False
+	                                                        glob.connecta = False
                                 else:
                                         if config.logorders:
                                                 functions.writelog("Orders: Cancelling sell order " + str(o.order_id) +" due to manual cancel.")
 	                                        try:
 	                        	                t.cancelOrder(o.order_id)            # kill the order!!!
-                                                        totcano += 1
-	                        	                connecta = True
+                                                        glob.totcano += 1
+	                        	                glob.connecta = True
 	                        	        except:
 	                        	                if config.logconnect:
 	                               	                        functions.writelog(str(e))
 	                               	                        functions.writelog("Connect: Unable to cancel sell order " + str(o.order_id) +" due to manual cancel.")
-	                               	                connecta = False
+	                               	                glob.connecta = False
 				        else:
                                                 if config.logorders:
                                                         functions.writelog("Orders: Cancelling buy order " + str(o.order_id) +" due to manual cancel.")
 				                try:
 	                                                t.cancelOrder(o.order_id)            # kill the order!!!
-                                                        totcano += 1
-	                                                connecta = True
+                                                        glob.totcano += 1
+	                                                glob.connecta = True
 	                                        except:
 	                                                if config.logconnect:
 	                                                        functions.writelog(str(e))
 	                                                        functions.writelog("Connect: Unable to cancel buy order " + str(o.order_id) +" due to manual cancel.")
-	                                                connecta = False
+	                                                glob.connecta = False
 	        except Exception as e:
 	                if config.logconnect:
 	                	functions.writelog(str(e))
 	                	functions.writelog("Connect: API Connect failed (check order age).")
-	                connecta = False
+	                glob.connecta = False
 # def_cancelall()
 
 
 def getorders(handler):
-	global orders
-	orders = ""
+	glob.orders = ""
         for key in handler.getKeys():
                 try:
 	                conn = btceapi.BTCEConnection()
 	                t = btceapi.TradeAPI(key, handler=handler)
-			orders = t.orderList(connection = conn)
-	                connecta = True
+			glob.orders = t.orderList(connection = conn)
+	                glob.connecta = True
                 except Exception as e:
 			if str(e) <> "OrderList call failed with error: no orders":
 				if config.logconnect:
 					functions.writelog(str(e))
 					functions.writelog("Connect: API Connect failed (get orders).")
-	                        connecta = False
+	                        glob.connecta = False
 # def_getorders()
 
 
-def getrights(handler, botright):
+def getrights(handler):
         for key in handler.getKeys():
 		try:
 	                conn = btceapi.BTCEConnection()
 	                t = btceapi.TradeAPI(key, handler=handler)
 			r = t.getInfo(connection = conn)
-			botright[0] = r.info_rights
-			botright[1] = r.trade_rights
-			botright[2] = r.withdraw_rights
-                        connecta = True
+			glob.botright[0] = r.info_rights
+			glob.botright[1] = r.trade_rights
+			glob.botright[2] = r.withdraw_rights
+                        glob.connecta = True
                 except Exception as e:
-			botright[0] = ""
-			botright[1] = ""
-			botright[2] = ""
+			glob.botright[0] = ""
+			glob.botright[1] = ""
+			glob.botright[2] = ""
 			if config.logconnect:
 				functions.writelog(str(e))
 				functions.writelog("Connect: API Connect failed (get rights).")
-                        connecta = False
+                        glob.connecta = False
 # def_getrights()
 
 
-def getcurrency(balancec, balancea, balanceo):
+def getcurrency():
         p = 0
         for currency in btceapi.all_currencies:
-		balancec.append(1)
-                balancea.append(1)
-                balanceo.append(1)
-                balancec[p] = currency
-		balancea[p] = 0
-		balanceo[p] = 0
+		glob.balancec.append(1)
+                glob.balancea.append(1)
+                glob.balanceo.append(1)
+                glob.balancec[p] = currency
+		glob.balancea[p] = 0
+		glob.balanceo[p] = 0
                 p += 1
 # def_getcurrency()
 
-def getbalance(handler, balancec, balancea, balanceo):
-	global connecta
+def getbalance(handler):
 	for key in handler.getKeys():
 		conn = btceapi.BTCEConnection()
 		t = btceapi.TradeAPI(key, handler=handler)
 		try:
-			connecta = True
+			glob.connecta = True
 			r = t.getInfo(connection = conn)
-			for p in range(0,len(balancec)):
-				balanceo[p] = balancea[p]
-       				balancea[p] = getattr(r, "balance_" + balancec[p])
+			for p in range(0,len(glob.balancec)):
+				glob.balanceo[p] = glob.balancea[p]
+       				glob.balancea[p] = getattr(r, "balance_" + glob.balancec[p])
 				p += 1
 		except Exception as e:
 			if config.logconnect:
 				functions.writelog(str(e))
 				functions.writelog("Connect: API Connect failed (get balance).")
-		        connecta = False
+		        glob.connecta = False
 # def_getbalance()
-
-
-
 
 def startconnect(handler):
         try:
@@ -340,18 +311,17 @@ def startconnect(handler):
 # def_startconnect()
 
 def chknw():
-	global connectw
 	try:
 		url = urllib2.urlopen(config.btceurl, timeout = config.btcesoctim )
 	except Exception as e:
-		connectw = False
+		glob.connectw = False
 		if config.logconnect:
 			functions.writelog(str(e))
 			functions.writelog("Connect: Connection to webpage failed.")
 		if config.btcealrsnd:
 			print "\a"						# Sound bell if no network
 	else:
-		connectw = True
+		glob.connectw = True
 # def_chknw()
 
 def logstart(handler):
@@ -411,8 +381,8 @@ def logstart(handler):
 
 		if config.logbalance:
 			functions.writelog("Balance: Opening balance:")
-			for p in range(0,len(balancec)):
-	                	functions.writelog("Balance: " + balancec[p]+ " = " +  str('{0:f}'.format(balancea[p]))) 
+			for p in range(0,len(glob.balancec)):
+	                	functions.writelog("Balance: " + glob.balancec[p]+ " = " +  str('{0:f}'.format(glob.balancea[p]))) 
                         glob.openbalance = functions.getbtcbalance(handler)
                         functions.writelog("Balance: Including open orders in BTC: " + str(glob.openbalance))
 
@@ -434,27 +404,27 @@ def show():
 	        else:
 	                print c.red + u"\u26AB" + c.rst,
 		print "  BTC-e:",
-	        if connectw:
+	        if glob.connectw:
 			print c.grn + u"\u26AB" + c.rst,
 	        else:
 	                print c.red + u"\u26AB" + c.rst,
 		print "  API:",
-	        if connecta:
+	        if glob.connecta:
 	                print c.grn + u"\u26AB" + c.rst,
 	        else:
 	                print c.red + u"\u26AB" + c.rst,
 		print "  Info:",
-	        if botright[0]:
+	        if glob.botright[0]:
 	                print c.grn + u"\u26AB" + c.rst,
 	        else:
 	                print c.red + u"\u26AB" + c.rst,
 	        print "  Trade:",
-	        if botright[1]:
+	        if glob.botright[1]:
 	                print c.grn + u"\u26AB" + c.rst,
 	        else:
 	                print c.red + u"\u26AB" + c.rst,
 	        print "  Withdraw:",
-	        if botright[2]:
+	        if glob.botright[2]:
 	                print c.grn + u"\u26AB" + c.rst
 	        else:
 	                print c.red + u"\u26AB" + c.rst
@@ -474,63 +444,63 @@ def show():
 	if config.showbalance:
 		print (79 * "_")
 	        print " Balance: ",
-		for p in range(0, len(balancec),3):
+		for p in range(0, len(glob.balancec),3):
 			print " "
-			if balancea[p] == balanceo[p] and balancea[p] <> 0:
-				print "  - " + '{:4s}'.format(balancec[p]), c.inv + '{:16.8f}'.format(balancea[p]) + c.rst,
-			elif balancea[p] > balanceo[p]:
-				print "  - " + '{:4s}'.format(balancec[p]), c.bup + '{:16.8f}'.format(balancea[p]) + c.rst,
-			elif balancea[p] == 0:
-				print "  - " + '{:4s}'.format(balancec[p]), c.lgr + '{:16.8f}'.format(balancea[p]) + c.rst,
+			if glob.balancea[p] == glob.balanceo[p] and glob.balancea[p] <> 0:
+				print "  - " + '{:4s}'.format(glob.balancec[p]), c.inv + '{:16.8f}'.format(glob.balancea[p]) + c.rst,
+			elif glob.balancea[p] > glob.balanceo[p]:
+				print "  - " + '{:4s}'.format(glob.balancec[p]), c.bup + '{:16.8f}'.format(glob.balancea[p]) + c.rst,
+			elif glob.balancea[p] == 0:
+				print "  - " + '{:4s}'.format(glob.balancec[p]), c.lgr + '{:16.8f}'.format(glob.balancea[p]) + c.rst,
 			else:
-				print "  - " + '{:4s}'.format(balancec[p]), c.bdn + '{:16.8f}'.format(balancea[p]) + c.rst,
-			if p+1 < len(balancec):
-		                if balancea[p+1] == balanceo[p+1] and balancea[p+1] <> 0:
-		                        print "  - " + '{:4s}'.format(balancec[p+1]), c.inv + '{:16.8f}'.format(balancea[p+1]) + c.rst,
-		                elif balancea[p+1] > balanceo[p+1]:
-		                        print "  - " + '{:4s}'.format(balancec[p+1]), c.bup + '{:16.8f}'.format(balancea[p+1]) + c.rst,
-				elif balancea[p+1] == 0:
-	                                print "  - " + '{:4s}'.format(balancec[p+1]), c.lgr + '{:16.8f}'.format(balancea[p+1]) + c.rst,
+				print "  - " + '{:4s}'.format(glob.balancec[p]), c.bdn + '{:16.8f}'.format(glob.balancea[p]) + c.rst,
+			if p+1 < len(glob.balancec):
+		                if glob.balancea[p+1] == glob.balanceo[p+1] and glob.balancea[p+1] <> 0:
+		                        print "  - " + '{:4s}'.format(glob.balancec[p+1]), c.inv + '{:16.8f}'.format(glob.balancea[p+1]) + c.rst,
+		                elif glob.balancea[p+1] > glob.balanceo[p+1]:
+		                        print "  - " + '{:4s}'.format(glob.balancec[p+1]), c.bup + '{:16.8f}'.format(glob.balancea[p+1]) + c.rst,
+				elif glob.balancea[p+1] == 0:
+	                                print "  - " + '{:4s}'.format(glob.balancec[p+1]), c.lgr + '{:16.8f}'.format(glob.balancea[p+1]) + c.rst,
 		                else:
-		                        print "  - " + '{:4s}'.format(balancec[p+1]), c.bdn + '{:16.8f}'.format(balancea[p+1]) + c.rst,
-	                if p+2 < len(balancec):
-	                       if balancea[p+2] == balanceo[p+2] and balancea[p+2] <> 0:
-	                                print "  - " + '{:4s}'.format(balancec[p+2]), c.inv + '{:16.8f}'.format(balancea[p+2]) + c.rst,
-	                       elif balancea[p+2] > balanceo[p+2]:
-	                                print "  - " + '{:4s}'.format(balancec[p+2]), c.bup + '{:16.8f}'.format(balancea[p+2]) + c.rst,
-	                       elif balancea[p+2] == 0:
-	                                print "  - " + '{:4s}'.format(balancec[p+2]), c.lgr + '{:16.8f}'.format(balancea[p+2]) + c.rst,
+		                        print "  - " + '{:4s}'.format(glob.balancec[p+1]), c.bdn + '{:16.8f}'.format(glob.balancea[p+1]) + c.rst,
+	                if p+2 < len(glob.balancec):
+	                       if glob.balancea[p+2] == glob.balanceo[p+2] and glob.balancea[p+2] <> 0:
+	                                print "  - " + '{:4s}'.format(glob.balancec[p+2]), c.inv + '{:16.8f}'.format(glob.balancea[p+2]) + c.rst,
+	                       elif glob.balancea[p+2] > glob.balanceo[p+2]:
+	                                print "  - " + '{:4s}'.format(glob.balancec[p+2]), c.bup + '{:16.8f}'.format(glob.balancea[p+2]) + c.rst,
+	                       elif glob.balancea[p+2] == 0:
+	                                print "  - " + '{:4s}'.format(glob.balancec[p+2]), c.lgr + '{:16.8f}'.format(glob.balancea[p+2]) + c.rst,
 	                       else:
-	                                print "  - " + '{:4s}'.format(balancec[p+2]), c.bdn + '{:16.8f}'.format(balancea[p+2]) + c.rst,
+	                                print "  - " + '{:4s}'.format(glob.balancec[p+2]), c.bdn + '{:16.8f}'.format(glob.balancea[p+2]) + c.rst,
 		print " "							# needed for newline
 
 	if config.showticker:
 		print (79 * "_")
 		print " Ticker:"
-		print " " + tickbuy
-		print " " + ticksell	
+		print " " + glob.tickbuy
+		print " " + glob.ticksell	
 
         if config.showtrend:
                 print (79 * "_")
                 print " SMA:"
-                print " " + trends
+                print " " + glob.trends
 
         if config.showordcnt:
 		print (79 * "_")
-                print " Total -Buy orders:" + str(glob.totbuyo) + " -Sell orders:" + str(glob.totsello) + " -Cancelled orders:" + str(totcano) + " -Missed orders:" + str(glob.totmiso)
+                print " Total -Buy orders:" + str(glob.totbuyo) + " -Sell orders:" + str(glob.totsello) + " -Cancelled orders:" + str(glob.totcano) + " -Missed orders:" + str(glob.totmiso)
 
 	if config.showorders:
-                ordbuy = 0
-                ordsell = 0
-	        for o in orders:
+                glob.ordbuy = 0
+                glob.ordsell = 0
+	        for o in glob.orders:
 			if o.type == "buy":
-		        	ordbuy += 1
+		        	glob.ordbuy += 1
 			else:
-		        	ordsell += 1
+		        	glob.ordsell += 1
 		print (79 * "_")
-		print " Open orders (" + str(ordbuy) + "/" + str(ordsell) + "): "
+		print " Open orders (" + str(glob.ordbuy) + "/" + str(glob.ordsell) + "): "
 		print " id       Type  Pair         Rate           Amount          Created"
-	        for o in orders:
+	        for o in glob.orders:
 	        	print '{:9}'.format(o.order_id),
 			if o.type == "buy":
 		        	print c.grn + '{:5}'.format(o.type) + c.rst,
@@ -602,60 +572,58 @@ def show():
 # def_show()
 
 def main():
-	global handler, orders, ordbuy, ordsell, connecta
-
+        global handler
         if version_info<(2,7,3):
                 print("\n")
                 print("You need python 2.7.3 or later to run this script\n")
                 exit(1)
 
-
-	ordbuy = 0
-	ordsell = 0
-	connecta =  False
+	glob.ordbuy = 0
+	glob.ordsell = 0
+	glob.connecta =  False
 	keypress = " "							# user input var
 	runstatus = 1							# execution loop control
 	for t in range(0,3):
-		botright.append("")
+		glob.botright.append("")
 	chknw()								# Is btc-e online
-	handler = startconnect(handler)					# Open a connection
-	getcurrency(balancec, balancea, balanceo)			# Get currencies
-	getbalance(handler, balancec, balancea, balanceo)		# Get balance per currency
-	getrights(handler, botright)
+	handler=startconnect(handler)			                                # Open a connection
+	getcurrency()                                                   # Get currencies
+	getbalance(handler)                                                    # Get balance per currency
+	getrights(handler)
 	logstart(handler)
 	updateticker()
 	getorders(handler)
 	while runstatus == 1: 
-		show()							# update the screen
+		show()							                                                # update the screen
 		rlist, _, _ = select.select([stdin], [], [], config.tradeinterval)
-								 	# get input or timeout
-		if rlist:						# something was entered
-			keypress = stdin.readline().strip() 	# get the user input without \n
-			if keypress == "q":				# quit the bot
+								 	                                                # get input or timeout
+		if rlist:						                                                # something was entered
+			keypress = stdin.readline().strip() 	                                                        # get the user input without \n
+			if keypress == "q":				                                                # quit the bot
 				runstatus = 0				
 
-			if keypress == "C":				# Cancel all trades)
+			if keypress == "C":				                                                # Cancel all trades)
                                 if config.logrun:
                                        functions.writelog("Run: Cancel all trades requested.")
 	        		print "                                   Cancelling all open orders.  "		# Reloaded
                                 cancelall(handler)
-			        getorders(handler)                                                                      # Check active orders
+			        getorders(handler)                                                                             # Check active orders
 
-			if keypress == "t":				# reload the config file (changed settings?)
+			if keypress == "t":				                                                # reload the config file (changed settings?)
                                 if config.logrun:
                                        functions.writelog("Run: Manual trade triggered.")
-                                if config.tradeonhold:                  # Trading paused?
+                                if config.tradeonhold:                                                                  # Trading paused?
                                        functions.writelog("Run: Overriding tradeonhold = True.")
-			        checkordage(handler)                                                    # Check if orders need canceling
-			        if connecta:								# api is working
-				        trading.dotrade(handler, lastrate, balancec, balancea)		# Check and perform trading
-			if keypress == "r":				# reload the config file (changed settings?)
+			        checkordage(handler)                                                                           # Check if orders need canceling
+			        if glob.connecta:							                # api is working
+				        trading.dotrade(handler)		                                                # Check and perform trading
+			if keypress == "r":				                                                # reload the config file (changed settings?)
 				reload(config)
                                 if config.logrun:
                                         functions.writelog("Run: Configuration file 'config.py' reloaded.")
-	        		print "                                   Configuration settings reloaded.  "		        # Reloaded
+	        		print "                                   Configuration settings reloaded.  "		# Reloaded
                                 sleep(2)
-			if keypress == "p":				# pause execution
+			if keypress == "p":				                                                # pause execution
 				system('cls' if name=='nt' else 'clear')
                                 if config.logrun:
                                         functions.writelog("Run: Execution paused.")
@@ -703,18 +671,18 @@ def main():
 					functions.writelog("Run: Trade interval decreased to " + str(config.tradeinterval) + " seconds.")
 		else:
 			print (55 * '\b'),
-			print "Running trades & updating indices.                     "		        # terminated
+			print "Running trades & updating indices.                     "	        # terminated
 			chknw()
-                        if not config.tradeonhold:                                                      # Trading paused?
-			        checkordage(handler)                                                    # Check if orders need canceling
-			        if connecta:								# api is working
-				        trading.dotrade(handler, lastrate, balancec, balancea)		# Check and perform trading
-			getrights(handler, botright)                                                    # Get trading bot rights
+                        if not config.tradeonhold:                                              # Trading paused?
+			        checkordage(handler)                                                   # Check if orders need canceling
+			        if glob.connecta:						# api is working
+				        trading.dotrade(handler)		                        # Check and perform trading
+			getrights(handler)                                                             # Get trading bot rights
         		updateticker()                                                          # Update the ticker
                         if config.showorders:
-			        getorders(handler)                                                      # Check active orders
+			        getorders(handler)                                                     # Check active orders
                         if config.showbalance:
-        			getbalance(handler, balancec, balancea, balanceo)                       # Get updated bbbbbalance information
+        			getbalance(handler)                                                    # Get updated bbbbbalance information
 
 	#return
 # def_main()
@@ -728,25 +696,25 @@ if config.logenable:
 		functions.writelog("----------------------------------------------------------------------------")
 		functions.writelog("Run: Yabb starting.")
 
-main()									                # call main procedure
+main()									                        # call main procedure
 
-system('cls' if name=='nt' else 'clear')				                # clear screen
+system('cls' if name=='nt' else 'clear')				                        # clear screen
 
 if config.tradeendcnl:
         cancelall(handler)
 
 if config.logbalance:
 	functions.writelog("Balance: Closing balance:")
-	for p in range(0,len(balancec)):
-               	functions.writelog("Balance: " + balancec[p]+ " = " +  str('{0:f}'.format(balancea[p]))) 
+	for p in range(0,len(glob.balancec)):
+               	functions.writelog("Balance: " + glob.balancec[p]+ " = " +  str('{0:f}'.format(glob.balancea[p]))) 
         glob.closebalance = functions.getbtcbalance(handler)
         functions.writelog("Balance: Including open orders in BTC: " + str(glob.closebalance))
         print " "
-        print "                 Opening balance was " + str(glob.openbalance)		# terminated
-        print "                 Closing balance is  " + str(glob.closebalance)		# terminated
+        print "                 Opening balance was " + str(glob.openbalance)		        # terminated
+        print "                 Closing balance is  " + str(glob.closebalance)		        # terminated
         print " "
 
-print "                   YABB terminated on user request.   "		                # terminated
+print "                   YABB terminated on user request.   "		                        # terminated
 print " "
 
 if config.logenable:
