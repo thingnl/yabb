@@ -1,5 +1,5 @@
 from os import system, name
-from sys import exit, stdin, stdout
+from sys import exit, stdin, stdout, version_info
 from time import strftime, sleep
 from timeit import default_timer
 
@@ -603,6 +603,13 @@ def show():
 
 def main():
 	global handler, orders, ordbuy, ordsell, connecta
+
+        if version_info<(2,7,3):
+                print("\n")
+                print("You need python 2.7.3 or later to run this script\n")
+                exit(1)
+
+
 	ordbuy = 0
 	ordsell = 0
 	connecta =  False

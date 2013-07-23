@@ -246,7 +246,7 @@ def getbtcbalance(handler):
                                 balance[-1] = balance[-1] + ( history[0].price * balance[r] )
                         elif curname[r] == "usd":
                                 history = btceapi.getTradeHistory("btc_usd")
-                                balance[-1] = balance[-1] + ( history[0].price * balance[r] )
+                                balance[-1] = balance[-1] + ( balance[r] / history[0].price )
                         elif curname[r] == "rur":
                                 history = btceapi.getTradeHistory("btc_rur")
                                 balance[-1] = balance[-1] + ( history[0].price * balance[r] )
