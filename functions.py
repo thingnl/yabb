@@ -211,17 +211,6 @@ def getbtcbalance(handler):
                                                         if curname[pointer] == "btc":
                                                                 balance[pointer] = balance[pointer] + o.amount * o.rate
                                                         pointer += 1
-                                elif o.pair == "cnc_btc":
-                                        if o.type == "sell":
-                                                for p in range(0,len(balance)):        
-                                                        if curname[pointer] == "cnc":
-                                                                balance[pointer] = balance[pointer] + o.amount
-                                                        pointer += 1
-                                        else:
-                                                for p in range(0,len(balance)):        
-                                                        if curname[pointer] == "btc":
-                                                                balance[pointer] = balance[pointer] + o.amount * o.rate
-                                                        pointer += 1
                 except:
                         whatever = "voutje bedankt"
 
@@ -255,9 +244,6 @@ def getbtcbalance(handler):
                                 balance[-1] = balance[-1] + ( history[0].price * balance[r] )
                         elif curname[r] == "ftc":
                                 history = btceapi.getTradeHistory("ftc_btc")
-                                balance[-1] = balance[-1] + ( history[0].price * balance[r] )
-                        elif curname[r] == "cnc":
-                                history = btceapi.getTradeHistory("cnc_btc")
                                 balance[-1] = balance[-1] + ( history[0].price * balance[r] )
                         r += 1
 
